@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: weread-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: weread
+      MYSQL_USER: ${DB_USERNAME:-weread}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-changeme}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: weread-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/weread?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+      DB_USERNAME: ${DB_USERNAME:-weread}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:${SERVER_PORT:-8080}
+    container_name: weread-frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    restart: unless-stopped
+
+volumes:
+  mysql_data:

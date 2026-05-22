@@ -1,0 +1,44 @@
+# Environment & secrets — never commit these
+.env
+.env.local
+.env.*.local
+**/application-local.yml
+**/application-secret.yml
+**/application-prod.yml
+
+# Java / Maven
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.DS_Store
+
+# Node / Next.js
+**/node_modules/
+**/.next/
+**/out/
+**/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Docker
+*.log
+
+# Claude Code local settings
+.claude/
+
+# OS
+Thumbs.db
