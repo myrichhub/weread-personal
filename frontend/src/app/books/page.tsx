@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Search, StickyNote } from "lucide-react";
 import { api, Book, PageResponse } from "@/lib/api";
 import { isLoggedIn } from "@/lib/auth";
 import Navbar from "@/components/Navbar";
@@ -22,6 +23,9 @@ export default function BooksPage() {
   const [data, setData] = useState<PageResponse<Book> | null>(null);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const [hasNotes, setHasNotes] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -30,20 +34,62 @@ export default function BooksPage() {
     }
     setLoading(true);
     api
-      .listBooks(page, 10)
+      .listBooks(page, 10, q || undefined, hasNotes)
       .then(setData)
       .catch(() => router.replace("/"))
       .finally(() => setLoading(false));
-  }, [page, router]);
+  }, [page, q, hasNotes, router]);
+
+  const handleSearch = (value: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setPage(0);
+      setQ(value);
+    }, 300);
+  };
+
+  const toggleHasNotes = () => {
+    setPage(0);
+    setHasNotes((v) => !v);
+  };
 
   return (
     <div className="min-h-screen">
       <Navbar />
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <h2 className="text-xl font-bold text-gray-800 mb-1">我的书架</h2>
-        {data && (
-          <p className="text-sm text-gray-400 mb-6">共 {data.total} 本书</p>
-        )}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-800">我的书架</h2>
+          {data && (
+            <p className="text-sm text-gray-400">共 {data.total} 本书</p>
+          )}
+        </div>
+
+        {/* Search + filter bar */}
+        <div className="flex gap-2 mb-6">
+          <div className="relative flex-1">
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
+              placeholder="搜索书名或作者…"
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300"
+            />
+          </div>
+          <button
+            onClick={toggleHasNotes}
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border transition-colors whitespace-nowrap ${
+              hasNotes
+                ? "bg-brand text-white border-brand"
+                : "bg-white text-gray-600 border-gray-200 hover:border-brand hover:text-brand"
+            }`}
+          >
+            <StickyNote size={14} />
+            仅看有笔记
+          </button>
+        </div>
 
         {loading && (
           <div className="flex justify-center py-20">
@@ -53,7 +99,9 @@ export default function BooksPage() {
 
         {!loading && data?.items.length === 0 && (
           <div className="text-center py-20 text-gray-400">
-            暂无书籍数据，请点击右上角「同步数据」
+            {q || hasNotes
+              ? "没有符合条件的书籍"
+              : "暂无书籍数据，请点击右上角「同步数据」"}
           </div>
         )}
 
@@ -78,7 +126,7 @@ export default function BooksPage() {
                   ) : (
                     <div className="w-14 h-[72px] bg-gray-100 rounded flex-shrink-0" />
                   )}
-                  <div className="flex flex-col justify-center gap-1 min-w-0">
+                  <div className="flex flex-col justify-center gap-1 min-w-0 flex-1">
                     <p className="font-semibold text-gray-900 truncate">
                       {book.title}
                     </p>
@@ -89,6 +137,20 @@ export default function BooksPage() {
                       </p>
                     )}
                   </div>
+                  {(book.annotationCount > 0 || book.thoughtCount > 0) && (
+                    <div className="flex flex-col items-end justify-center gap-1 flex-shrink-0 text-xs text-gray-400">
+                      {book.annotationCount > 0 && (
+                        <span className="bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full">
+                          划线 {book.annotationCount}
+                        </span>
+                      )}
+                      {book.thoughtCount > 0 && (
+                        <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded-full">
+                          想法 {book.thoughtCount}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </button>
               ))}
             </div>

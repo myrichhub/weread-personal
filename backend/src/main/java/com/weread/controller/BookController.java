@@ -24,8 +24,10 @@ public class BookController {
     @GetMapping
     public ResponseEntity<PageResponse<BookDto>> list(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(bookService.listBooks(page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "false") boolean hasNotes) {
+        return ResponseEntity.ok(bookService.listBooks(page, size, q, hasNotes));
     }
 
     @GetMapping("/{bookId}")

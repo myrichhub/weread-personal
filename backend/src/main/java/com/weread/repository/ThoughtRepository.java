@@ -12,4 +12,5 @@ public interface ThoughtRepository extends JpaRepository<Thought, Long> {
     Optional<Thought> findByThoughtId(String thoughtId);
     Page<Thought> findByBookIdOrderByCreatedTimeAsc(String bookId, Pageable pageable);
     List<Thought> findByBookIdOrderByCreatedTimeAsc(String bookId);
+    long countByBookId(String bookId);
 }

@@ -38,6 +38,8 @@ export interface Book {
   intro: string;
   lastReadTime: number;
   readStatus: number;
+  annotationCount: number;
+  thoughtCount: number;
 }
 
 export interface NoteItem {
@@ -71,10 +73,15 @@ export const api = {
       .get<{ state: string; message: string }>("/sync/status")
       .then((r) => r.data),
 
-  listBooks: (page = 0, size = 10) =>
-    http
-      .get<PageResponse<Book>>(`/books?page=${page}&size=${size}`)
-      .then((r) => r.data),
+  listBooks: (page = 0, size = 10, q?: string, hasNotes = false) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      size: String(size),
+    });
+    if (q) params.set("q", q);
+    if (hasNotes) params.set("hasNotes", "true");
+    return http.get<PageResponse<Book>>(`/books?${params}`).then((r) => r.data);
+  },
   getBook: (bookId: string) =>
     http.get<Book>(`/books/${bookId}`).then((r) => r.data),
   getNotes: (bookId: string, page = 0, size = 20) =>

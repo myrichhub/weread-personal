@@ -119,8 +119,16 @@ public class SyncService {
 
     private void syncAnnotations(String bookId, String sessionCookie) throws IOException {
         JsonNode data = weReadClient.fetchAnnotations(bookId, sessionCookie);
+        int errCode = data.path("errCode").asInt(0);
+        if (errCode != 0) {
+            log.warn("Annotation API error for book {}: errCode={}, msg={}", bookId, errCode, data.path("errMsg").asText(""));
+            return;
+        }
         JsonNode items = data.path("updated");
-        if (!items.isArray()) return;
+        if (!items.isArray()) {
+            log.debug("No 'updated' array for book {}, keys: {}", bookId, data.fieldNames());
+            return;
+        }
 
         for (JsonNode item : items) {
             String annotationId = item.path("bookmarkId").asText(null);

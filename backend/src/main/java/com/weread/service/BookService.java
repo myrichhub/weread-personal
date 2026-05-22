@@ -39,8 +39,22 @@ public class BookService {
         this.thoughtRepository = thoughtRepository;
     }
 
-    public PageResponse<BookDto> listBooks(int page, int size) {
-        Page<Book> p = bookRepository.findAllByOrderByLastReadTimeDesc(PageRequest.of(page, size));
+    public PageResponse<BookDto> listBooks(int page, int size, String q, boolean hasNotes) {
+        PageRequest pageable = PageRequest.of(page, size);
+        boolean hasQ = q != null && !q.isBlank();
+
+        Page<Book> p;
+        if (hasQ && hasNotes) {
+            p = bookRepository.findBooksWithNotesByQuery(q.trim(), pageable);
+        } else if (hasNotes) {
+            p = bookRepository.findBooksWithNotes(pageable);
+        } else if (hasQ) {
+            p = bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrderByLastReadTimeDesc(
+                    q.trim(), q.trim(), pageable);
+        } else {
+            p = bookRepository.findAllByOrderByLastReadTimeDesc(pageable);
+        }
+
         List<BookDto> items = p.getContent().stream().map(this::toDto).collect(Collectors.toList());
         return new PageResponse<>(items, page, size, p.getTotalElements(), p.getTotalPages());
     }
@@ -111,6 +125,8 @@ public class BookService {
         dto.setIntro(b.getIntro());
         dto.setLastReadTime(b.getLastReadTime());
         dto.setReadStatus(b.getReadStatus());
+        dto.setAnnotationCount(annotationRepository.countByBookId(b.getBookId()));
+        dto.setThoughtCount(thoughtRepository.countByBookId(b.getBookId()));
         return dto;
     }
 

@@ -110,6 +110,7 @@ public class WeReadClient {
         HttpUrl url = HttpUrl.parse(baseUrl + "/web/book/bookmarklist")
                 .newBuilder()
                 .addQueryParameter("bookId", bookId)
+                .addQueryParameter("synckey", "0")
                 .build();
         Request request = new Request.Builder()
                 .url(url)

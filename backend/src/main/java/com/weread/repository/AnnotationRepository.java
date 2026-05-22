@@ -12,4 +12,5 @@ public interface AnnotationRepository extends JpaRepository<Annotation, Long> {
     Optional<Annotation> findByAnnotationId(String annotationId);
     Page<Annotation> findByBookIdOrderByCreatedTimeAsc(String bookId, Pageable pageable);
     List<Annotation> findByBookIdOrderByCreatedTimeAsc(String bookId);
+    long countByBookId(String bookId);
 }

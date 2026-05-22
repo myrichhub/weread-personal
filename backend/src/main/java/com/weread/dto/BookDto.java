@@ -8,6 +8,8 @@ public class BookDto {
     private String intro;
     private Long lastReadTime;
     private Integer readStatus;
+    private long annotationCount;
+    private long thoughtCount;
 
     public String getBookId() { return bookId; }
     public void setBookId(String bookId) { this.bookId = bookId; }
@@ -23,4 +25,8 @@ public class BookDto {
     public void setLastReadTime(Long lastReadTime) { this.lastReadTime = lastReadTime; }
     public Integer getReadStatus() { return readStatus; }
     public void setReadStatus(Integer readStatus) { this.readStatus = readStatus; }
+    public long getAnnotationCount() { return annotationCount; }
+    public void setAnnotationCount(long annotationCount) { this.annotationCount = annotationCount; }
+    public long getThoughtCount() { return thoughtCount; }
+    public void setThoughtCount(long thoughtCount) { this.thoughtCount = thoughtCount; }
 }
